@@ -1,3 +1,5 @@
+import os
+
 import requests
 import torch
 from bs4 import BeautifulSoup
@@ -10,6 +12,7 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer, TrainingArguments, Text
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+
 
 def scrape_usajobs():
     # Send a GET request to the USAJOBS website
@@ -84,7 +87,7 @@ def extract_features():
 
     # Remove empty job descriptions
     data = data.dropna(subset=["Description"])
-    
+
     # Check if any job descriptions are available after removing empty rows
     if data.empty:
         print("Error: No valid job description texts found.")
@@ -106,7 +109,7 @@ def extract_features():
     texts = [description.split() for description in data["Description"]]
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
-    
+
     # Check if any terms are available for topic modeling
     if not corpus:
         print("Error: No terms available for topic modeling.")
@@ -126,7 +129,6 @@ def extract_features():
     data.to_csv("usajobs_data_with_features.csv", index=False)
 
     print("Feature extraction completed and data saved successfully.")
-
 
 
 def train_resume_model():
