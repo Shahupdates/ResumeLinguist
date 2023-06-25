@@ -161,7 +161,38 @@ def train_resume_model():
     print("Resume generation model training completed.")
 
 
-# Call the functions to scrape data, perform feature extraction, and train the model
+def generate_resumes():
+    # Load the fine-tuned GPT-2 model
+    model = GPT2LMHeadModel.from_pretrained("./resume_generation/fine_tuned_model")
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+    # Set the device to GPU if available
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+
+    # Set the model to evaluation mode
+    model.eval()
+
+    # Generate resumes for a sample job description
+    sample_job_description = "Enter your job description here..."
+    input_ids = tokenizer.encode(sample_job_description, return_tensors="pt").to(device)
+    output = model.generate(input_ids, max_length=200, num_return_sequences=3, temperature=0.7)
+
+    # Decode and print the generated resumes
+    generated_resumes = [tokenizer.decode(resume, skip_special_tokens=True) for resume in output]
+    for resume in generated_resumes:
+        print(resume)
+        print("-----")
+
+    # Save the generated resumes to a file
+    with open("generated_resumes.txt", "w", encoding="utf-8") as file:
+        file.write("\n".join(generated_resumes))
+
+    print("Resumes generated and saved successfully.")
+
+
+# Call the functions sequentially to scrape data, perform feature extraction, train the model, and generate resumes
 scrape_usajobs()
 extract_features()
 train_resume_model()
+generate_resumes()
