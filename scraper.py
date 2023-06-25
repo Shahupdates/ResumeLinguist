@@ -66,11 +66,21 @@ def scrape_usajobs():
 
 
 def extract_features():
+    # Check if the CSV file with job data exists
+    if not os.path.isfile("usajobs_data.csv"):
+        print("Error: Job data file 'usajobs_data.csv' not found.")
+        return
+
     # Load the English language model in spaCy
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
     # Load the job description data from the CSV file
     data = pd.read_csv("usajobs_data.csv")
+
+    # Check if the job description column exists in the data
+    if "Description" not in data.columns:
+        print("Error: No job description texts found.")
+        return
 
     # Extract key skills using spaCy's Named Entity Recognition (NER)
     skills = []
@@ -86,18 +96,8 @@ def extract_features():
 
     # Perform topic modeling using Gensim
     texts = [description.split() for description in data["Description"]]
-    
-    if len(texts) == 0:
-        print("Error: No job description texts found.")
-        return
-    
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
-    
-    if len(corpus) == 0:
-        print("Error: No corpus available for topic modeling.")
-        return
-    
     lda_model = models.LdaModel(corpus, num_topics=5, id2word=dictionary)
 
     # Get the dominant topic for each job description
@@ -115,8 +115,18 @@ def extract_features():
 
 
 def train_resume_model():
+    # Check if the CSV file with features exists
+    if not os.path.isfile("usajobs_data_with_features.csv"):
+        print("Error: Features data file 'usajobs_data_with_features.csv' not found.")
+        return
+
     # Load the job description data with features from the CSV file
     data = pd.read_csv("usajobs_data_with_features.csv")
+
+    # Check if the necessary columns exist in the data
+    if "Titles" not in data.columns or "Description" not in data.columns:
+        print("Error: Required columns not found in the features data file.")
+        return
 
     # Combine job titles and job descriptions as model input
     input_data = data["Titles"] + " " + data["Description"]
@@ -174,6 +184,7 @@ def train_resume_model():
     trainer.save_model("./resume_generation/fine_tuned_model")
 
     print("Resume generation model training completed.")
+
 
 
 def generate_resume(sample_job_description):
