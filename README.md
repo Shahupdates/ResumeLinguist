@@ -78,4 +78,29 @@ Some potential future enhancements for the Resume Linguist project include:
 4. View and copy the generated resume for further use.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+This project is licensed under the Creative Commons Attribution 4.0 International License (CC-BY 4.0).
+
+To view a copy of this license, visit [https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/) or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+### Attribution
+
+Please attribute the work as follows:
+- Include a copyright notice (e.g., "© [2023] [Love Shah]") in your project or product.
+- Provide a link to the original repository (e.g., "This project is based on [ResumeLinguist], available at [https://github.com/Shahupdates/ResumeLinguist/]").
+
+### Permissions
+
+You are free to:
+- Share: copy and redistribute the material in any medium or format.
+- Adapt: remix, transform, and build upon the material for any purpose, even commercially.
+
+### Conditions
+
+Under the following conditions:
+- Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+
+### Disclaimer
+
+This license does not grant you any trademark rights, rights of privacy or publicity, or any other rights. The license is non-exclusive, revocable, and worldwide. Any of the above conditions can be waived if you get permission from the copyright holder.
+
