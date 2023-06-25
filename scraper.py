@@ -4,7 +4,10 @@ import pandas as pd
 import re
 import spacy
 from gensim import corpora, models
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
 
 def scrape_usajobs():
     # Send a GET request to the USAJOBS website
@@ -161,7 +164,7 @@ def train_resume_model():
     print("Resume generation model training completed.")
 
 
-def generate_resumes():
+def generate_resume(sample_job_description):
     # Load the fine-tuned GPT-2 model
     model = GPT2LMHeadModel.from_pretrained("./resume_generation/fine_tuned_model")
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -173,26 +176,30 @@ def generate_resumes():
     # Set the model to evaluation mode
     model.eval()
 
-    # Generate resumes for a sample job description
-    sample_job_description = "Enter your job description here..."
+    # Generate a resume for the sample job description
     input_ids = tokenizer.encode(sample_job_description, return_tensors="pt").to(device)
-    output = model.generate(input_ids, max_length=200, num_return_sequences=3, temperature=0.7)
+    output = model.generate(input_ids, max_length=200, num_return_sequences=1, temperature=0.7)
 
-    # Decode and print the generated resumes
-    generated_resumes = [tokenizer.decode(resume, skip_special_tokens=True) for resume in output]
-    for resume in generated_resumes:
-        print(resume)
-        print("-----")
+    # Decode the generated resume
+    generated_resume = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Save the generated resumes to a file
-    with open("generated_resumes.txt", "w", encoding="utf-8") as file:
-        file.write("\n".join(generated_resumes))
-
-    print("Resumes generated and saved successfully.")
+    return generated_resume
 
 
-# Call the functions sequentially to scrape data, perform feature extraction, train the model, and generate resumes
-scrape_usajobs()
-extract_features()
-train_resume_model()
-generate_resumes()
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        job_description = request.form["job_description"]
+        if job_description:
+            generated_resume = generate_resume(job_description)
+            return render_template("index.html", generated_resume=generated_resume)
+
+    return render_template("index.html")
+
+
+if __name__ == "__main__":
+    # Call the functions sequentially to scrape data, perform feature extraction, and train the model
+    scrape_usajobs()
+    extract_features()
+    train_resume_model()
+    app.run(debug=True)
