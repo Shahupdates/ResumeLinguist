@@ -82,6 +82,14 @@ def extract_features():
         print("Error: No job description texts found.")
         return
 
+    # Remove empty job descriptions
+    data = data.dropna(subset=["Description"])
+    
+    # Check if any job descriptions are available after removing empty rows
+    if data.empty:
+        print("Error: No valid job description texts found.")
+        return
+
     # Extract key skills using spaCy's Named Entity Recognition (NER)
     skills = []
     for description in data["Description"]:
@@ -98,6 +106,12 @@ def extract_features():
     texts = [description.split() for description in data["Description"]]
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
+    
+    # Check if any terms are available for topic modeling
+    if not corpus:
+        print("Error: No terms available for topic modeling.")
+        return
+
     lda_model = models.LdaModel(corpus, num_topics=5, id2word=dictionary)
 
     # Get the dominant topic for each job description
@@ -112,6 +126,7 @@ def extract_features():
     data.to_csv("usajobs_data_with_features.csv", index=False)
 
     print("Feature extraction completed and data saved successfully.")
+
 
 
 def train_resume_model():
