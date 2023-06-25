@@ -86,8 +86,18 @@ def extract_features():
 
     # Perform topic modeling using Gensim
     texts = [description.split() for description in data["Description"]]
+    
+    if len(texts) == 0:
+        print("Error: No job description texts found.")
+        return
+    
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
+    
+    if len(corpus) == 0:
+        print("Error: No corpus available for topic modeling.")
+        return
+    
     lda_model = models.LdaModel(corpus, num_topics=5, id2word=dictionary)
 
     # Get the dominant topic for each job description
@@ -194,9 +204,9 @@ def home():
         job_description = request.form["job_description"]
         if job_description:
             generated_resume = generate_resume(job_description)
-            return render_template("index.html", generated_resume=generated_resume)
+            return render_template("templates/index.html", generated_resume=generated_resume)
 
-    return render_template("index.html")
+    return render_template("templates/index.html")
 
 
 if __name__ == "__main__":
