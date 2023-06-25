@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import spacy
 from gensim import corpora, models
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
 
 def scrape_usajobs():
     # Send a GET request to the USAJOBS website
@@ -98,6 +99,69 @@ def extract_features():
     print("Feature extraction completed and data saved successfully.")
 
 
-# Call the functions to scrape data and perform feature extraction
+def train_resume_model():
+    # Load the job description data with features from the CSV file
+    data = pd.read_csv("usajobs_data_with_features.csv")
+
+    # Combine job titles and job descriptions as model input
+    input_data = data["Titles"] + " " + data["Description"]
+
+    # Initialize the GPT-2 tokenizer
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+    # Tokenize the input data
+    tokenized_data = tokenizer.batch_encode_plus(
+        input_data.tolist(),
+        max_length=1024,
+        truncation=True,
+        padding="max_length",
+        return_tensors="pt"
+    )
+
+    # Load the pre-trained GPT-2 model
+    model = GPT2LMHeadModel.from_pretrained("gpt2")
+
+    # Set up the training arguments
+    training_args = TrainingArguments(
+        output_dir="./resume_generation",
+        overwrite_output_dir=True,
+        num_train_epochs=5,
+        per_device_train_batch_size=4,
+        save_steps=500,
+        save_total_limit=2
+    )
+
+    # Create the training dataset
+    dataset = TextDataset(
+        tokenized_data,
+        tokenizer=tokenizer,
+        block_size=128
+    )
+
+    # Create the data collator for language modeling
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=False
+    )
+
+    # Initialize the Trainer
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        data_collator=data_collator,
+        train_dataset=dataset
+    )
+
+    # Train the model
+    trainer.train()
+
+    # Save the fine-tuned model
+    trainer.save_model("./resume_generation/fine_tuned_model")
+
+    print("Resume generation model training completed.")
+
+
+# Call the functions to scrape data, perform feature extraction, and train the model
 scrape_usajobs()
 extract_features()
+train_resume_model()
