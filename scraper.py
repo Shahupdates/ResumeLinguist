@@ -163,7 +163,8 @@ def train_resume_model():
 
     # Initialize the GPT-2 tokenizer
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-
+    tokenizer.pad_token = tokenizer.eos_token  # Set padding token
+    
     # Tokenize the input data
     tokenized_data = tokenizer.batch_encode_plus(
         input_data.tolist(),
