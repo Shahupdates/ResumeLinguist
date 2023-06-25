@@ -1,13 +1,18 @@
+import os
+
 import requests
+import torch
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import spacy
 from gensim import corpora, models
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, TrainingArguments, TextDataset, \
+    DataCollatorForLanguageModeling, Trainer
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+
 
 def scrape_usajobs():
     # Send a GET request to the USAJOBS website
@@ -19,7 +24,7 @@ def scrape_usajobs():
 
         # Find all job listings on the page
         job_listings = soup.find_all("div", class_="job-listing")
-
+        print("Number of job listings:", len(job_listings))
         # Create empty lists to store job data
         titles = []
         organizations = []
@@ -56,19 +61,42 @@ def scrape_usajobs():
 
         # Save the data to a CSV file
         data.to_csv("usajobs_data.csv", index=False)
-
+        # Check the data
+        print("Number of job descriptions:", len(data["Description"]))
+        print("Number of non-empty job descriptions:", len(data[data["Description"].str.strip() != ""]))
+        print("First few rows of data:")
+        print(data.head())
         print("Data scraped and saved successfully.")
 
     else:
+
         print("Error: Failed to retrieve data from USAJOBS.")
 
 
 def extract_features():
+    # Check if the CSV file with job data exists
+    if not os.path.isfile("usajobs_data.csv"):
+        print("Error: Job data file 'usajobs_data.csv' not found.")
+        return
+
     # Load the English language model in spaCy
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
     # Load the job description data from the CSV file
     data = pd.read_csv("usajobs_data.csv")
+
+    # Check if the job description column exists in the data
+    if "Description" not in data.columns:
+        print("Error: No job description texts found.")
+        return
+
+    # Remove empty job descriptions
+    data = data.dropna(subset=["Description"])
+
+    # Check if any job descriptions are available after removing empty rows
+    if data.empty:
+        print("Error: No valid job description texts found.")
+        return
 
     # Extract key skills using spaCy's Named Entity Recognition (NER)
     skills = []
@@ -86,6 +114,12 @@ def extract_features():
     texts = [description.split() for description in data["Description"]]
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
+
+    # Check if any terms are available for topic modeling
+    if not corpus:
+        print("Error: No terms available for topic modeling.")
+        return
+
     lda_model = models.LdaModel(corpus, num_topics=5, id2word=dictionary)
 
     # Get the dominant topic for each job description
@@ -103,8 +137,18 @@ def extract_features():
 
 
 def train_resume_model():
+    # Check if the CSV file with features exists
+    if not os.path.isfile("usajobs_data_with_features.csv"):
+        print("Error: Features data file 'usajobs_data_with_features.csv' not found.")
+        return
+
     # Load the job description data with features from the CSV file
     data = pd.read_csv("usajobs_data_with_features.csv")
+
+    # Check if the necessary columns exist in the data
+    if "Titles" not in data.columns or "Description" not in data.columns:
+        print("Error: Required columns not found in the features data file.")
+        return
 
     # Combine job titles and job descriptions as model input
     input_data = data["Titles"] + " " + data["Description"]
@@ -162,6 +206,7 @@ def train_resume_model():
     trainer.save_model("./resume_generation/fine_tuned_model")
 
     print("Resume generation model training completed.")
+
 
 
 def generate_resume(sample_job_description):
