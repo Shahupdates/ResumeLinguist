@@ -1,10 +1,12 @@
 import requests
+import torch
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import spacy
 from gensim import corpora, models
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, TrainingArguments, TextDataset, \
+    DataCollatorForLanguageModeling, Trainer
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
@@ -65,7 +67,7 @@ def scrape_usajobs():
 
 def extract_features():
     # Load the English language model in spaCy
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
     # Load the job description data from the CSV file
     data = pd.read_csv("usajobs_data.csv")
