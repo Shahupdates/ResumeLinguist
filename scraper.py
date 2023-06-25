@@ -164,7 +164,7 @@ def train_resume_model():
     # Initialize the GPT-2 tokenizer
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
     tokenizer.pad_token = tokenizer.eos_token  # Set padding token
-    
+
     # Tokenize the input data
     tokenized_data = tokenizer.batch_encode_plus(
         input_data.tolist(),
@@ -173,6 +173,9 @@ def train_resume_model():
         padding="max_length",
         return_tensors="pt"
     )
+
+    # Create the training dataset
+    dataset = Dataset.from_dict(tokenized_data)
 
     # Load the pre-trained GPT-2 model
     model = GPT2LMHeadModel.from_pretrained("gpt2")
@@ -185,13 +188,6 @@ def train_resume_model():
         per_device_train_batch_size=4,
         save_steps=500,
         save_total_limit=2
-    )
-
-    # Create the training dataset
-    dataset = TextDataset(
-        tokenized_data,
-        tokenizer=tokenizer,
-        block_size=128
     )
 
     # Create the data collator for language modeling
