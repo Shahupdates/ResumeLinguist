@@ -24,7 +24,7 @@ def scrape_usajobs():
 
         # Find all job listings on the page
         job_listings = soup.find_all("div", class_="job-listing")
-
+        print("Number of job listings:", len(job_listings))
         # Create empty lists to store job data
         titles = []
         organizations = []
@@ -61,10 +61,15 @@ def scrape_usajobs():
 
         # Save the data to a CSV file
         data.to_csv("usajobs_data.csv", index=False)
-
+        # Check the data
+        print("Number of job descriptions:", len(data["Description"]))
+        print("Number of non-empty job descriptions:", len(data[data["Description"].str.strip() != ""]))
+        print("First few rows of data:")
+        print(data.head())
         print("Data scraped and saved successfully.")
 
     else:
+
         print("Error: Failed to retrieve data from USAJOBS.")
 
 
