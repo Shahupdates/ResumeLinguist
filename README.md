@@ -1,6 +1,7 @@
 # Resume Linguist
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LICENSE.TXT)
+
 
 Resume Linguist is an NLP-driven project aimed at helping users create optimized and effective resumes. The project utilizes Machine Learning, Natural Language Processing (NLP), and web scraping techniques to generate tailored resumes based on job descriptions.
 
