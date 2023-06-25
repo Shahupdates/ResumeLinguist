@@ -21,8 +21,16 @@ import json
 
 def scrape_usajobs():
     host = 'data.usajobs.gov'
-    userAgent = 'your@email.address'  # replace with your email address
-    authKey = 'YourAPIKey'  # replace with your API key
+    # Read the credentials from the file
+    with open('credentials.txt', 'r') as file:
+        credentials = file.read().splitlines()
+
+    if len(credentials) != 2:
+        print("Error: credentials file should contain userAgent and authKey on separate lines.")
+        return
+
+    userAgent = credentials[0]
+    authKey = credentials[1]
 
     url = 'https://data.usajobs.gov/api/search'
     headers = {
